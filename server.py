@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, Response
 import braintree
 import logging
 import time
+import os
 app = Flask(__name__)
 
 # Setup logging test
@@ -17,12 +18,15 @@ def paypal_callback():
     logging.info('Headers: %s', request.headers)
     logging.info('Payload: %s', request.json)
 
+    orderid = os.environ.get('ORDER')
+    logging.info('Order Id: %s', orderid)
+
     # JSON response to return
     response_data = {
-        "id": "PAYPAL_ORDER_ID_HERE",
+        "id": order,
         "purchase_units": [
             {
-                "reference_id": "REFERENCE_ID_HERE",
+                "reference_id": "PURCHASE_UNIT_REFERENCE",
                 "amount": {
                     "currency_code": "USD",
                     "value": "105.00",
