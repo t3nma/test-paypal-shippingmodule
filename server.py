@@ -17,16 +17,15 @@ def paypal_callback():
     logging.info('PayPal Callback Received:')
     logging.info('Headers: %s', request.headers)
     logging.info('Payload: %s', request.json)
-
-    orderid = os.environ.get('ORDER')
-    logging.info('Order Id: %s', orderid)
+    logging.info('ID: %s', request.json['id'])
+    logging.info('REF ID: %s', request.json['purchase_units'][0]['reference_id'])
 
     # JSON response to return
     response_data = {
-        "id": order,
+        "id": request.json['id'],
         "purchase_units": [
             {
-                "reference_id": "PURCHASE_UNIT_REFERENCE",
+                "reference_id": request.json['purchase_units'][0]['reference_id'],
                 "amount": {
                     "currency_code": "USD",
                     "value": "105.00",
