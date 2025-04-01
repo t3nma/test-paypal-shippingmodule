@@ -1,0 +1,2 @@
+braintree==4.34.0
+Flask==3.1.0
