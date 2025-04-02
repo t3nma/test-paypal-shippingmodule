@@ -118,7 +118,7 @@ def paypal_callback():
 
     if mode == 'SUCCESS':
         response = get_success_response(request.json)
-    else if mode == 'ORCUN':
+    elif mode == 'ORCUN':
         response = get_orcun_response(request.json)
     else:
         logging.info('Unknown mode!')
