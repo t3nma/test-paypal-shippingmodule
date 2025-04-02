@@ -148,7 +148,6 @@ def paypal_callback():
         response = get_success_response(request.json)
     elif mode == 'ERROR':
         response = get_error_response(request.json)
-        return jsonify(response), 200 if response.get("id") is not None else 422
     elif mode == 'ORCUN':
         response = get_orcun_response(request.json)
     else:
@@ -156,4 +155,4 @@ def paypal_callback():
         return 'bad request!', 400
 
     logging.info('Response: %s', response)
-    return jsonify(response), 200
+    return jsonify(response), 200 if response.get("id") is not None else 422
