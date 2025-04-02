@@ -76,7 +76,7 @@ def paypal_callback():
 
     if mode == 'SUCCESS':
         response = get_success_response(request.json)
-    else
+    else:
         logging.info('Unknown mode!')
         return 'bad request!', 400
 
