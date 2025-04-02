@@ -107,6 +107,23 @@ def get_orcun_response(request):
         ]
     }
 
+def get_error_response():
+    errors = [
+        "ADDRESS_ERROR",
+        "COUNTRY_ERROR",
+        "STATE_ERROR",
+        "ZIP_ERROR",
+        "METHOD_UNAVAILABLE",
+        "STORE_UNAVAILABLE"
+    ]
+
+    return {
+        "name": "UNPROCESSABLE_ENTITY",
+        "details": [{
+            "issue": errors[random.randint(0, len(errors)-1)]
+        }]
+    }
+
 @app.route('/callback/paypal', methods=['POST'])
 def paypal_callback():
     logging.info('PayPal Callback Received:')
@@ -118,6 +135,9 @@ def paypal_callback():
 
     if mode == 'SUCCESS':
         response = get_success_response(request.json)
+    elif mode == 'ERROR':
+        response = get_error_response()
+        return jsonify(response), 422
     elif mode == 'ORCUN':
         response = get_orcun_response(request.json)
     else:
