@@ -97,8 +97,9 @@ def get_fatal_response():
     return 'internal server error!', 500
 
 def get_timeout_response(request):
-    logging.info('Sleeping for 5 seconds...')
-    time.sleep(5)
+    timeout_seconds = int(os.environ.get("TIMEOUT"))
+    logging.info("Sleeping for {:d} seconds...".format(timeout_seconds))
+    time.sleep(timeout_seconds)
     logging.info('AWAKE!')
     return get_success_response(request)
 
