@@ -116,8 +116,6 @@ def paypal_callback():
         scenario_state = 1
         return get_success_response(request.json)
 
-    scenario_state = 0
-
     if mode == 'ERROR':
         return get_error_response()
     elif mode == 'FATAL':
