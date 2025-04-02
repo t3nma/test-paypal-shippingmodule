@@ -40,7 +40,7 @@ def get_success_response(request):
     selected_amount = None
 
     options = []
-    for i in range(number_options):
+    for i in range(number_options+1):
         option = create_option(i, i == selected_option)
         if option["selected"] == True:
             selected_amount = float(option["amount"]["value"])
