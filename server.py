@@ -97,9 +97,9 @@ def get_fatal_response():
     return 'internal server error!', 500
 
 def get_timeout_response(request):
-    logging.inf('Sleeping for 10 seconds...')
-    time.sleep(10)
-    logging.inf('AWAKE!')
+    logging.info('Sleeping for 5 seconds...')
+    time.sleep(5)
+    logging.info('AWAKE!')
     return get_success_response(request)
 
 @app.route('/callback/paypal', methods=['POST'])
