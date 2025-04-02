@@ -7,6 +7,18 @@ import random
 
 app = Flask(__name__)
 
+# global variables for error scenario
+errors = [
+        "ADDRESS_ERROR",
+        "COUNTRY_ERROR",
+        "STATE_ERROR",
+        "ZIP_ERROR",
+        "METHOD_UNAVAILABLE",
+        "STORE_UNAVAILABLE"
+    ]
+    
+error_state = 0
+
 # Setup logging test
 logging.basicConfig(level=logging.INFO)
 
@@ -107,15 +119,14 @@ def get_orcun_response(request):
         ]
     }
 
-def get_error_response():
-    errors = [
-        "ADDRESS_ERROR",
-        "COUNTRY_ERROR",
-        "STATE_ERROR",
-        "ZIP_ERROR",
-        "METHOD_UNAVAILABLE",
-        "STORE_UNAVAILABLE"
-    ]
+def get_error_response(request):
+    global error_state
+
+    if error_state == 0:
+        error_state = 1
+        return get_success_response(request)
+
+    error_state = 0
 
     return {
         "name": "UNPROCESSABLE_ENTITY",
@@ -136,7 +147,7 @@ def paypal_callback():
     if mode == 'SUCCESS':
         response = get_success_response(request.json)
     elif mode == 'ERROR':
-        response = get_error_response()
+        response = get_error_response(request.json)
         return jsonify(response), 422
     elif mode == 'ORCUN':
         response = get_orcun_response(request.json)
