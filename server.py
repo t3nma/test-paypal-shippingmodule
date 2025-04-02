@@ -24,10 +24,10 @@ def cancel():
 
 def create_option(id, is_selected):
     return {
-        "id": str(id),
+        "id": str(id+1),
         "amount": {
             "currency_code": "USD",
-            "value": "{:.2f}".format(random.randrange(10,1000)/100)
+            "value": "0.00" if id == 0 else "{:.2f}".format(random.randrange(10,1000)/100)
         },
         "type": "SHIPPING",
         "label": "Free Shipping" if id == 0 else "Shipping option " + str(id),
