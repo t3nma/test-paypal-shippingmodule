@@ -4,6 +4,7 @@ import logging
 import time
 import os
 import random
+import time
 
 app = Flask(__name__)
 
@@ -17,7 +18,8 @@ errors = [
         "STORE_UNAVAILABLE"
     ]
 
-error_state = 0
+# global variables for 2-step scenarios
+scenario_state = 0
 
 # Setup logging test
 logging.basicConfig(level=logging.INFO)
@@ -58,7 +60,7 @@ def get_success_response(request):
             selected_amount = float(option["amount"]["value"])
         options.append(option)
 
-    return {
+    result = {
         "id": request['id'],
         "purchase_units": [
             {
@@ -77,82 +79,50 @@ def get_success_response(request):
         ]
     }
 
-def get_orcun_response(request):
-    return {
-        "id": request['id'],
-        "purchase_units": [
-            {
-                "reference_id": request['purchase_units'][0]['reference_id'],
-                "amount": {
-                    "currency_code": "USD",
-                    "value": "105.00",
-                    "breakdown": {
-                        "item_total": {"currency_code": "USD", "value": "100.00"},
-                        "tax_total": {"currency_code": "USD", "value": "5.00"},
-                        "shipping": {"currency_code": "USD", "value": "0.00"}
-                    }
-                },
-                "shipping_options": [
-                    {
-                        "id": "1",
-                        "amount": {"currency_code": "USD", "value": "0.00"},
-                        "type": "SHIPPING",
-                        "label": "Free Shipping",
-                        "selected": True
-                    },
-                    {
-                        "id": "2",
-                        "amount": {"currency_code": "USD", "value": "10.00"},
-                        "type": "SHIPPING",
-                        "label": "USPS Priority Shipping",
-                        "selected": False
-                    },
-                    {
-                        "id": "3",
-                        "amount": {"currency_code": "USD", "value": "10.00"},
-                        "type": "SHIPPING",
-                        "label": "1-Day Shipping",
-                        "selected": False
-                    }
-                ]
-            }
-        ]
-    }
+    logging.info('Response: %s', result)
+    return jsonify(result), 200
 
-def get_error_response(request):
-    global error_state
-
-    if error_state == 0:
-        error_state = 1
-        return get_success_response(request)
-
-    error_state = 0
-
-    return {
+def get_error_response():
+    result = {
         "name": "UNPROCESSABLE_ENTITY",
         "details": [{
             "issue": errors[random.randint(0, len(errors)-1)]
         }]
     }
 
+    logging.info('Response: %s', result)
+    return jsonify(result), 422
+
+def get_fatal_response():
+    return 'internal server error!', 500
+
+def get_timeout_response(request):
+    logging.inf('Sleeping for 10 seconds...')
+    time.sleep(10)
+    logging.inf('AWAKE!')
+    return get_success_response(request)
+
 @app.route('/callback/paypal', methods=['POST'])
 def paypal_callback():
+    global scenario_state
+
     logging.info('PayPal Callback Received:')
     logging.info('Headers: %s', request.headers)
     logging.info('Payload: %s', request.json)
 
     mode = os.environ.get("MODE")
-    response = None
 
-    if mode == 'SUCCESS':
-        response = get_success_response(request.json)
-    elif mode == 'ERROR':
-        response = get_error_response(request.json)
-    elif mode == 'ORCUN':
-        response = get_orcun_response(request.json)
+    if mode == 'SUCCESS' or scenario_state == 0:
+        scenario_state = 1
+        return get_success_response(request.json)
+
+    scenario_state = 0
+
+    if mode == 'ERROR':
+        return get_error_response()
+    elif mode == 'FATAL':
+        return get_fatal_response()
+    elif mode == 'TIMEOUT':
+        return get_timeout_response(request.json)
     else:
-        logging.info('Unknown mode!')
         return 'bad request!', 400
-
-    logging.info('Response: %s', response)
-    return jsonify(response), 200 if response.get("id") is not None else 422
