@@ -114,7 +114,7 @@ def paypal_callback():
     mode = os.environ.get("MODE")
 
     if mode == 'FAILFAST':
-        return get_fatal_response()
+        return get_timeout_response(request.json)
 
     if mode == 'SUCCESS' or scenario_state == 0:
         scenario_state = 1
