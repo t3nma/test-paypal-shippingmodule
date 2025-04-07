@@ -111,7 +111,8 @@ def paypal_callback():
     logging.info('Headers: %s', request.headers)
     logging.info('Payload: %s', request.json)
 
-    mode = os.environ.get("MODE")
+    # mode = os.environ.get("MODE")
+    mode = request.json['purchase_units'][0]['reference_id']
 
     if mode == 'FAILFAST':
         return get_timeout_response(request.json)
