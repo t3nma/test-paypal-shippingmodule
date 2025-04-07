@@ -1,0 +1,481 @@
+{
+	"info": {
+		"_postman_id": "124dac58-5dcc-48b5-9148-4d687f6a5f92",
+		"name": "PayPal Shipping Module",
+		"description": "# How-to\n\n1. Setup `client_id` , `client_secret`, `customer_email` and `test_mode` variables\n    \n    1. `customer_email` should represent a personal **US** account\n        \n    2. see the possible values for `test_mode` below\n        \n2. Perform `Generate access_token` request\n    \n3. Perform `Create Order` request\n    \n    1. Extract the `payer-action` from the response payload and open it in your browse\n        \n4. Perform shipping address changes in PayPal review page\n    \n\n# Test modes\n\nVariable `test_mode` as the following values:\n\n- `SUCCESS` (Default) : changes in shipping address will result in a valid response with random shipping options\n    \n- `ERROR` : first shipping address change will result in a 422 error with a random error value contained in the range of valid error codes\n    \n- `FATAL` : first shipping address change will result in a 500 error\n    \n- `TIMEOUT` : first shipping address change will result in server timeout\n    \n- `FAILFAST` : initial callback fails with timeout, displaying what happens in the case of an uncontrolled error occuring right after the customer being redirected\n    \n\n# Troubleshooting\n\nIn case you can't perform the redirect for any of the test modes (with exception for the `FAILFAST` one) you should try:\n\n1. Change the `customer_email` variable to a different email and repeat the process",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18110648",
+		"_collection_link": "https://moneymakersteam.postman.co/workspace/MoneyMakers-Shared-Place~21fad4b4-fda4-4e48-8e45-511f566666e0/collection/18110648-124dac58-5dcc-48b5-9148-4d687f6a5f92?action=share&source=collection_link&creator=18110648"
+	},
+	"item": [
+		{
+			"name": "Generate access_token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Save access_token as collection variable for subsequent API invocations\", function () {",
+							"    var responseJson = pm.response.json();",
+							"    pm.collectionVariables.set('access_token', responseJson.access_token)",
+							"    var expiryDate = new Date();",
+							"    expiryDate.setSeconds(expiryDate.getSeconds() + responseJson.expires_in);",
+							"    pm.collectionVariables.set('access_token_expiry', expiryDate.getTime());",
+							"    pm.collectionVariables.set('access_token_for', pm.collectionVariables.get(\"client_id\"));",
+							"    if(responseJson.client_metadata && responseJson.client_metadata.display_name) {",
+							"        console.log(\"Logged in using App=\", responseJson.client_metadata.display_name);",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// first API in the folder enable delay subsequent APIs only during folder/collection run.",
+							"pm.variables.set('delayed_run', 'true');"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{client_secret}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "{{client_id}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"description": "The credential type to exchange for an access token.",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "refresh_token",
+							"description": "The credential type to exchange for an access token.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "refresh_token",
+							"value": "{{refresh_token}}",
+							"description": "The refresh token. Use to get access tokens. Use the same authorization grant as described in [OAuth2.0 RFC6749 Section 6](https://tools.ietf.org/html/rfc6749#section-6). Returns value only for `POST /token` calls with a `grant_type` of `authorization_code`.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "grant_type",
+							"value": "authorization_code",
+							"description": "The credential type to exchange for an access token.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "code",
+							"value": "{{authorization_code}}",
+							"description": "The authorization code that the `/login` call returns to the client to complete a user log in and get a third-party access token. Required if the `grant_type` is `authorization_code`.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "ignoreCache",
+							"value": "true",
+							"description": "A new token is issued ignoring the previously issued and still not expired token.",
+							"type": "text"
+						},
+						{
+							"key": "return_authn_schemes",
+							"value": "true",
+							"description": "Lists user authentication options and returns a first-party access token to authenticate an end user. Valid for all grant types except the `authzcode` authorization code, which indicates that the user is already authenticated.",
+							"type": "text"
+						},
+						{
+							"key": "return_client_metadata",
+							"value": "true",
+							"description": "Lists client metadata attributes. Valid for all grant types.",
+							"type": "text"
+						},
+						{
+							"key": "return_unconsented_scopes",
+							"value": "true",
+							"description": "Lists unconsented scopes between the user and client. Valid for all grant types except `client_credentials`.",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "",
+							"description": "The redirection endpoint that terminates the user authorization flow. The value must be an EXACT match to the URI registered for the client during the client registration. If you pass the `target_client_id` parameter, the URI must be `target_client_id`. The out-of-band value is `urn:ietf:wg:oauth:2.0:oob`. Native apps can use the `redirect_uri` parameter.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "response_type",
+							"value": "token",
+							"description": "A space-separated list of token types. If the list is valid, the API returns all requested token types.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "response_type",
+							"value": "uat",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "claims[]",
+							"value": "customer_id:A2062N462U97",
+							"description": "The client-specific key-and-value pairs associated with the access token. You can retrieve these pairs through the security context. Use a comma (`,`) to separate the key-and-value pairs.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "scope",
+							"value": "https://uri.paypal.com/services/payments/payment https://uri.paypal.com/services/payments/orders/deprecating-jssdk-migration-for-limited-merchants",
+							"description": "A list of space-separated and case-sensitive scopes, or permissions, to associate with the access token. If you omit this value, the API assumes the maximum set of allowed scopes. The scopes must be one of these values:\nA subset of the scopes authorized for the client.\nConsented by the user in case of end-user scopes.\nAssociated with the refresh token, depending on the `grant_type`.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "device_info",
+							"value": "",
+							"description": "The URL-encoded key-and-value pair that defines device information. If `unbind_device` is `true`, you must include the `device_info` or `refresh_token` parameter.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "app_info",
+							"value": "",
+							"description": "The URL-encoded key-and-value pair that defines application information. If `unbind_device` is `true`, you must include the `app_info` or `refresh_token` parameter.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "risk_data",
+							"value": "",
+							"description": "The URL-encoded key-and-value pairs of data required by risk. You can typically obtain values through the Dyson library. Required for public clients.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "target_subject",
+							"value": "",
+							"description": "The email address or payer ID of the user for whom you want to create an access token. Required if the `grant_type` is `client_credentials`, `refresh_token`, or `urn:paypal:params:oauth2:grant_type:unique_device_identifier`. This kind of `/token` request comes from a legacy client without REST API credentials.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "target_client_id",
+							"value": "",
+							"description": "The client ID of the client application for which the access token is created. Because the client who makes this kind of `/bind` request is a proxy, identifies the real client application. The client ID must have the `GRANT_PROXY_CLIENT` scope to use the `target_client_id` parameter.",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "partner_client_id",
+							"value": "",
+							"description": "The ID of the partner with permission granted by the merchant for the partner to create the access token. Required, and only relevant, if the `grant_type` is set to `client_credentials`, `refresh_token`, or `urn:paypal:params:oauth2:grant_type:unique_device_identifier",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/oauth2/token",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"oauth2",
+						"token"
+					]
+				},
+				"description": "Shows user profile information. Filters the response by a schema. Supported schema value is `paypalv1.1`."
+			},
+			"response": []
+		},
+		{
+			"name": "Create Order",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "PayPal-Request-Id",
+						"value": "{{$guid}}"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer 6V7rbVwmlM1gFZKW_8QtzWXqpcwQ6T5vhEGYNJDAAdn3paCgRpdeMdVYmWzgbKSsECednupJ3Zx5Xd-g",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"intent\": \"{{order_intent}}\",\r\n    \"payment_source\": {\r\n        \"paypal\": {\r\n            \"experience_context\": {\r\n            \"user_action\": \"CONTINUE\",\r\n            \"shipping_preference\": \"GET_FROM_FILE\",\r\n            \"return_url\": \"https://test-paypal-shippingmodule.onrender.com/return\",\r\n            \"cancel_url\": \"https://test-paypal-shippingmodule.onrender.com/cancel\",\r\n                \"order_update_callback_config\": {\r\n                    \"callback_events\": [\"SHIPPING_ADDRESS\"],\r\n                    \"callback_url\": \"https://test-paypal-shippingmodule.onrender.com/callback/paypal\"\r\n                }\r\n            },\r\n            \"email_address\": \"{{customer_email}}\"\r\n        }\r\n    },\r\n    \"purchase_units\": [\r\n        {\r\n            \"reference_id\": \"{{test_mode}}\",\r\n            \"items\": [\r\n                {\r\n                    \"name\": \"T-Shirt\",\r\n                    \"description\": \"Super Fresh Shirt\",\r\n                    \"unit_amount\": {\r\n                        \"currency_code\": \"USD\",\r\n                        \"value\": \"50.00\"\r\n                    },\r\n                    \"quantity\": \"1\",\r\n                    \"category\": \"PHYSICAL_GOODS\",\r\n                    \"sku\": \"sku01\",\r\n                    \"image_url\": \"https://example.com/static/images/items/1/tshirt_green.jpg\",\r\n                    \"url\": \"https://example.com/url-to-the-item-being-purchased-1\",\r\n                    \"upc\": {\r\n                        \"type\": \"UPC-A\",\r\n                        \"code\": \"123456789012\"\r\n                    }\r\n                },\r\n                {\r\n                    \"name\": \"Shoes\",\r\n                    \"description\": \"Running, Size 10.5\",\r\n                    \"sku\": \"sku02\",\r\n                    \"unit_amount\": {\r\n                        \"currency_code\": \"USD\",\r\n                        \"value\": \"25.00\"\r\n                    },\r\n                    \"quantity\": \"2\",\r\n                    \"category\": \"PHYSICAL_GOODS\",\r\n                    \"image_url\": \"https://example.com/static/images/items/1/shoes_running.jpg\",\r\n                    \"url\": \"https://example.com/url-to-the-item-being-purchased-2\",\r\n                    \"upc\": {\r\n                        \"type\": \"UPC-A\",\r\n                        \"code\": \"987654321012\"\r\n                    }\r\n                }\r\n            ],\r\n            \"amount\": {\r\n                \"currency_code\": \"USD\",\r\n                \"value\": \"100.00\",\r\n                \"breakdown\": {\r\n                    \"item_total\": {\r\n                        \"currency_code\": \"USD\",\r\n                        \"value\": \"100.00\"\r\n                    }\r\n                }\r\n            },\r\n            \"payee\": {\r\n                \"email_address\": \"sb-p28lr39050087@business.example.com\",\r\n                \"merchant_id\": \"65MXV4T2ZV6KY\"\r\n            }\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api-m.sandbox.paypal.com/v2/checkout/orders",
+					"protocol": "https",
+					"host": [
+						"api-m",
+						"sandbox",
+						"paypal",
+						"com"
+					],
+					"path": [
+						"v2",
+						"checkout",
+						"orders"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"// Following script is executed before every request in this collection. \r",
+					"\r",
+					"// Introduce delay in running the APIs only during collection/folder run.\r",
+					"// Delay wont be introduced if the APIs are running individually in postman app\r",
+					"if (pm.variables.get('delayed_run')) {\r",
+					"  setTimeout(() => {}, 1000); // in milliseconds\r",
+					"}\r",
+					"\r",
+					"// This script obtains access_token by invoking PayPal OAuth 2 API and stores it in the collection variable with same name `access_token`. This token is then reused as an Bearer Token for each API invocation until. The script obtains a new access_token automatically when the original one is expired. When the client_id is changed, original access_token is discarded and replaced with new one obtained against that new client_id and client_secret pair.\r",
+					"\r",
+					"const auth_request = {\r",
+					"    url: pm.variables.get(\"base_url\")+'/v1/oauth2/token',\r",
+					"    method: 'POST',\r",
+					"    header: {\r",
+					"        'content-type': 'application/x-www-form-urlencoded',\r",
+					"        'authorization': 'Basic ' + btoa(pm.variables.get(\"client_id\") + ':' +\r",
+					"            pm.variables.get(\"client_secret\"))\r",
+					"    },\r",
+					"    body: {\r",
+					"        mode: 'urlencoded',\r",
+					"        urlencoded: [{\r",
+					"            key: 'grant_type',\r",
+					"            value: 'client_credentials'\r",
+					"        }]\r",
+					"    }\r",
+					"};\r",
+					"\r",
+					"//console.info('Invoking: ', pm.info.requestName, pm.info.requestId);\r",
+					"if(pm.request.url.path.join('/').includes('/oauth2/token')) {\r",
+					"    // excude token generation API from reusing the token.\r",
+					"    return;\r",
+					"}\r",
+					"var needNewToken = true;\r",
+					"if (!pm.collectionVariables.get('access_token_expiry') ||\r",
+					"    !pm.collectionVariables.get('access_token') ||\r",
+					"    !pm.collectionVariables.get('access_token_for')) {\r",
+					"    console.log('access_token or its expiry date are missing.');\r",
+					"} else if (pm.collectionVariables.get('access_token_expiry') <= (new Date()).getTime()) {\r",
+					"    console.log('access_token is expired')\r",
+					"} else if (pm.collectionVariables.get('access_token_for') != pm.variables.get(\"client_id\")) {\r",
+					"    console.log('client_id is changed', \r",
+					"        pm.collectionVariables.get('access_token_for'), \r",
+					"        pm.variables.get(\"client_id\"))\r",
+					"} else {\r",
+					"    //console.log('Reusing previous access_token, valid until ', new Date(pm.collectionVariables.get('access_token_expiry')));\r",
+					"    needNewToken = false;\r",
+					"}\r",
+					"\r",
+					"if (needNewToken === true) {\r",
+					"\r",
+					"    // clear cached token before obtaining a new one\r",
+					"    pm.collectionVariables.unset('access_token');\r",
+					"    pm.collectionVariables.unset('access_token_expiry');\r",
+					"    pm.collectionVariables.unset('access_token_for');\r",
+					"\r",
+					"    pm.sendRequest(auth_request, function(err, response) {\r",
+					"        if (response.code === 200) {\r",
+					"            console.log('Saving the access_token')\r",
+					"            var responseJson = response.json();\r",
+					"            pm.collectionVariables.set('access_token', responseJson.access_token)\r",
+					"\r",
+					"            var expiryDate = new Date();\r",
+					"            expiryDate.setSeconds(expiryDate.getSeconds() + responseJson.expires_in);\r",
+					"            //console.log('Saving the access_token_expiry', expiryDate.getTime());\r",
+					"            pm.collectionVariables.set('access_token_expiry', expiryDate.getTime());\r",
+					"            //console.log('Saving the access_token_for');\r",
+					"            pm.collectionVariables.set('access_token_for', pm.variables.get(\"client_id\"));\r",
+					"\r",
+					"        } else {\r",
+					"            console.error(\"Failed to obtain access_token\", err, response.code, response.headers.get('Paypal-Debug-Id'), response.json());\r",
+					"        }\r",
+					"    });\r",
+					"}\r",
+					"\r",
+					"// global function to detect if APIs are being invoked against sandbox\r",
+					"Object.prototype.isSandbox = function() {\r",
+					"    return pm.variables.get(\"base_url\").includes(\"sandbox.paypal.com\");\r",
+					"}\r",
+					"\r",
+					"// global function to get tomorrow's date in ISO8601 format e.g. 2023-01-26T19:58:16.351Z\r",
+					"Object.prototype.getTomorrow = function() {\r",
+					"    const tomorrow = new Date();\r",
+					"    tomorrow.setDate(tomorrow.getDate() + 1)\r",
+					"    return tomorrow.toISOString();\r",
+					"}\r",
+					"\r",
+					"// get value for PayPal-Auth-Assertion header while acting on behalf of a consented seller\r",
+					"// Typical Usage: pm.collectionVariables.set('PayPal-Auth-Assertion', getAuthAssertionFor(pm.variables.get('seller1_payer_id')));\r",
+					"Object.prototype.getAuthAssertionFor = function(sellerEmailORPayerId) {\r",
+					"    var data = {\r",
+					"        \"payer_id\": sellerEmailORPayerId\r",
+					"    };\r",
+					"    return getJWT(pm.variables.get('client_id'), data, \"none\");\r",
+					"    //return getJWT(pm.variables.get('client_id'), data, \"HS256\", pm.variables.get('client_secret'));\r",
+					"}\r",
+					"\r",
+					"// generate JSON Web Tokens (JWT) by encoding the header and payload with base64url, \r",
+					"// and optionally signing the token with a secret\r",
+					"Object.prototype.getJWT = function(iss, data, alg, secret) {\r",
+					"    const header = { alg };\r",
+					"    const encodedHeader = base64url(JSON.stringify(header));\r",
+					"    const payload = { ...{ iss }, ...data };\r",
+					"    const encodedPayload = base64url(JSON.stringify(payload));\r",
+					"    const token = `${encodedHeader}.${encodedPayload}`;\r",
+					"    const signature = alg && alg !== 'none'\r",
+					"        ? base64url(CryptoJS.HmacSHA256(token, secret || '').toString())\r",
+					"        : '';\r",
+					"    return `${token}.${signature}`;\r",
+					"}\r",
+					"\r",
+					"Object.prototype.base64url = function(source) {\r",
+					"    return btoa(source)\r",
+					"        .replace(/=+$/, '')\r",
+					"        .replace(/\\+/g, '-')\r",
+					"        .replace(/\\//g, '_');\r",
+					"}\r",
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					"var successHttpStatuses = [200, 201, 202, 204];\r",
+					"var message = pm.response.code +\", Paypal-Debug-Id=\"+getPayPalDebugId();\r",
+					"\r",
+					"if(!isSuccessful()) {\r",
+					"    console.error(\"Unexpected HTTP Status Code: \", message, pm.response.text());\r",
+					"    console.error(\"https://developer.paypal.com/developer/dashboard/sandbox?Paypal-Debug-Id=\"+getPayPalDebugId());\r",
+					"    message = message + \", \"+pm.response.text();\r",
+					"}\r",
+					"\r",
+					"pm.test(\"HTTP Status Code must be one of \"+successHttpStatuses+\", actual is \"+message, function () {\r",
+					"    pm.expect(pm.response.code).to.be.oneOf(successHttpStatuses);\r",
+					"});\r",
+					"\r",
+					"function getPayPalDebugId() {\r",
+					"    if(pm && pm.response && pm.response.headers) {\r",
+					"        return pm.response.headers.get('Paypal-Debug-Id');\r",
+					"    } \r",
+					"}\r",
+					"\r",
+					"function isSuccessful() {\r",
+					"    return successHttpStatuses.includes(pm.response.code);\r",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://api-m.sandbox.paypal.com",
+			"type": "string"
+		},
+		{
+			"key": "client_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "client_secret",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "access_token_expiry",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "access_token_for",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "order_intent",
+			"value": "CAPTURE",
+			"type": "string"
+		},
+		{
+			"key": "customer_email",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "test_mode",
+			"value": "SUCCESS",
+			"type": "string"
+		}
+	]
+}
