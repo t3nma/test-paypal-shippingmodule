@@ -102,6 +102,51 @@ def get_success_response(request):
     logging.info('Response: %s', result)
     return jsonify(result), 200
 
+def get_success_response(request):
+    number_options = random.randint(1,3)
+    selected_option = random.randint(0,number_options)
+    selected_amount = None
+
+    options = []
+    for i in range(number_options+1):
+        option = create_option(i, i == selected_option)
+        if option["selected"] == True:
+            selected_amount = float(option["amount"]["value"])
+        options.append(option)
+
+    result = {
+        "id": request['id'],
+        "purchase_units": [
+            {
+                "reference_id": request['purchase_units'][0]['reference_id'],
+                "items": [
+                    {
+                        "name": "T-Shirt",
+                        "unit_amount":
+                        {
+                            "currency_code": "USD",
+                            "value": "50.00"
+                        },
+                        "quantity": "1"
+                    }
+                ],
+                "amount": {
+                    "currency_code": "USD",
+                    "value": "{:.2f}".format(55.0 + selected_amount),
+                    "breakdown": {
+                        "item_total": {"currency_code": "USD", "value": "50.00"},
+                        "tax_total": {"currency_code": "USD", "value": "5.00"},
+                        "shipping": {"currency_code": "USD", "value": "{:.2f}".format(selected_amount)}
+                    }
+                },
+                "shipping_options": options
+            }
+        ]
+    }
+
+    logging.info('Response: %s', result)
+    return jsonify(result), 200
+
 def get_error_response():
     result = {
         "name": "UNPROCESSABLE_ENTITY",
@@ -141,6 +186,8 @@ def paypal_callback():
         scenario_state = 1
         return get_success_response(request.json)
 
+    if mode == 'ITEMS':
+        return get_success_items_response(request.json)
     if mode == 'ERROR':
         return get_error_response()
     elif mode == 'FATAL':
