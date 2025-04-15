@@ -68,37 +68,21 @@ def get_success_response(request):
                 "items": [
                     {
                         "name": "T-Shirt",
-                        "description": "Super Fresh Shirt",
-                        "unit_amount": {
+                        "unit_amount":
+                        {
                             "currency_code": "USD",
                             "value": "50.00"
                         },
-                        "quantity": "1",
-                        "category": "PHYSICAL_GOODS",
-                        "sku": "sku01",
-                        "image_url": "https://example.com/static/images/items/1/tshirt_green.jpg",
-                        "url": "https://example.com/url-to-the-item-being-purchased-1",
-                        "upc": {
-                            "type": "UPC-A",
-                            "code": "123456789012"
-                        }
+                        "quantity": "1"
                     },
                     {
                         "name": "Shoes",
-                        "description": "Running, Size 10.5",
-                        "sku": "sku02",
-                        "unit_amount": {
-                            "currency_code": "USD",
-                            "value": "25.00"
-                        },
-                        "quantity": "2",
-                        "category": "PHYSICAL_GOODS",
-                        "image_url": "https://example.com/static/images/items/1/shoes_running.jpg",
-                        "url": "https://example.com/url-to-the-item-being-purchased-2",
-                        "upc": {
-                            "type": "UPC-A",
-                            "code": "987654321012"
-                        }
+                        "unit_amount":
+                            {
+                                "currency_code": "USD",
+                                "value": "25.00"
+                            },
+                        "quantity": "2"
                     }
                 ],
                 "amount": {
