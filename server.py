@@ -102,7 +102,7 @@ def get_success_response(request):
     logging.info('Response: %s', result)
     return jsonify(result), 200
 
-def get_success_response(request):
+def get_success_items_response(request):
     number_options = random.randint(1,3)
     selected_option = random.randint(0,number_options)
     selected_amount = None
