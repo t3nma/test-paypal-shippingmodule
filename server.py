@@ -87,10 +87,10 @@ def get_success_response(request):
                 ],
                 "amount": {
                     "currency_code": "USD",
-                    "value": "{:.2f}".format(105.0 + selected_amount),
+                    "value": "{:.2f}".format(110.0 + selected_amount),
                     "breakdown": {
                         "item_total": {"currency_code": "USD", "value": "100.00"},
-                        "tax_total": {"currency_code": "USD", "value": "5.00"},
+                        "tax_total": {"currency_code": "USD", "value": "10.00"},
                         "shipping": {"currency_code": "USD", "value": "{:.2f}".format(selected_amount)}
                     }
                 },
@@ -128,13 +128,22 @@ def get_success_items_response(request):
                             "value": "50.00"
                         },
                         "quantity": "1"
+                    },
+                    {
+                        "name": "Shoes",
+                        "unit_amount":
+                            {
+                                "currency_code": "USD",
+                                "value": "25.00"
+                            },
+                        "quantity": "1"
                     }
                 ],
                 "amount": {
                     "currency_code": "USD",
-                    "value": "{:.2f}".format(55.0 + selected_amount),
+                    "value": "{:.2f}".format(80.0 + selected_amount),
                     "breakdown": {
-                        "item_total": {"currency_code": "USD", "value": "50.00"},
+                        "item_total": {"currency_code": "USD", "value": "75.00"},
                         "tax_total": {"currency_code": "USD", "value": "5.00"},
                         "shipping": {"currency_code": "USD", "value": "{:.2f}".format(selected_amount)}
                     }
