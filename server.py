@@ -196,6 +196,7 @@ def paypal_callback():
         return get_success_response(request.json)
 
     if mode == 'ITEMS':
+        scenario_state = 0
         return get_success_items_response(request.json)
     if mode == 'ERROR':
         return get_error_response()
